@@ -1,6 +1,6 @@
 SUBDIRS := zstd zlib libelf libbpf-tools
 
-.PHONY: all $(SUBDIRS) clean
+.PHONY: all clean $(SUBDIRS) zlib_clean
 
 all: libbpf-tools
 
@@ -8,36 +8,36 @@ CC ?= gcc
 ARCH ?= x86_64
 
 CURR_DIR := $(shell pwd)
+
 ZSTD_PATH=$(CURR_DIR)/zstd
 ZLIB_PATH=$(CURR_DIR)/zlib
 LIBELF_PATH=$(CURR_DIR)/libelf
 
-# ARCH=arm64
-# CROSS_COMPILE=aarch64-linux-gnu-
-# CC=aarch64-linux-gnu-gcc
+LIBZSTD=$(ZSTD_PATH)/lib/libzstd.a
 
-zstd:
-	$(MAKE) -C zstd ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) CC=$(CC)
+BUILD_ZSTD = $(MAKE) -C zstd
+ifeq ($(ARCH),arm64)
+BUILD_ZSTD += aarch64-linux-gnu-gcc
+endif
+
+$(LIBZSTD):
+	$(MAKE) -C zstd
 
 zlib:
-	$(MAKE) -C zlib ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) CC=$(CC)
+	cd zlib && ([ -f configure.log ] || ./configure CC=$(CC) CHOST=$(ARCH)) && $(MAKE)
 
-libelf: zlib zstd
-	$(MAKE) -C libelf ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) CC=$(CC) LDFLAGS="-L$(ZSTD_PATH)/lib -L$(ZLIB_PATH)"
+zlib_clean:
+	$(MAKE) -C zlib clean
+	rm zlib/configure.log
 
-libbpf-tools: zstd zlib libelf
-	$(MAKE) -C libbpf-tools ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) CC=$(CC)
+libelf: $(LIBZSTD) zlib
+	$(MAKE) -C libelf LDFLAGS="-L$(ZSTD_PATH)/lib -L$(ZLIB_PATH)"
 
-# $(SUBDIRS):
-# 	$(MAKE) -C $@
+libbpf-tools: $(LIBZSTD) zlib libelf
+	$(MAKE) -C libbpf-tools
 
 clean:
 	$(MAKE) -C zstd clean
-	$(MAKE) -C zlib
-	$(MAKE) -C libelf
-	$(MAKE) -C libbpf-tools
-
-# clean:
-# 	for dir in $(SUBDIRS); do \
-# 		$(MAKE) -C $$dir clean; \
-# 	done
+	$(MAKE) -C zlib clean
+	$(MAKE) -C libelf clean
+	$(MAKE) -C libbpf-tools clean
