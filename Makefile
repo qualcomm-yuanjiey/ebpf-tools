@@ -1,8 +1,8 @@
 SUBDIRS := zstd zlib libelf libbpf-tools ply
 
-.PHONY: all clean $(SUBDIRS) zlib_clean
+.PHONY: all clean distclean $(SUBDIRS)
 
-all: libbpf-tools
+all: libbpf-tools ply
 
 CC ?= gcc
 ARCH ?= x86_64
@@ -18,6 +18,7 @@ LIBZSTD=$(ZSTD_PATH)/lib/libzstd.a
 $(LIBZSTD):
 	$(MAKE) -C zstd
 
+# ply prepare
 ply/Makefile:
 	cd ply && ./autogen.sh
 	cd ply && ./configure --host=$(ARCH) CC=$(CC)
@@ -29,12 +30,16 @@ ply_clean:
 	$(MAKE) -C ply clean
 	$(MAKE) -C ply distclean
 
-zlib:
-	cd zlib && ([ -f configure.log ] || ./configure CC=$(CC) CHOST=$(ARCH)) && $(MAKE)
+# zlib prepare
+zlib/configure.log:
+	cd zlib && ./configure CC=$(CC) CHOST=$(ARCH)
+
+zlib: zlib/configure.log
+	$(MAKE) -C zlib
 
 zlib_clean:
 	$(MAKE) -C zlib clean
-	rm zlib/configure.log
+	$(MAKE) -C zlib distclean
 
 libelf: $(LIBZSTD) zlib
 	$(MAKE) -C libelf LDFLAGS="-L$(ZSTD_PATH)/lib -L$(ZLIB_PATH)"
@@ -48,3 +53,5 @@ clean:
 	$(MAKE) -C zlib clean
 	$(MAKE) -C libelf clean
 	$(MAKE) -C libbpf-tools clean
+
+distclean: clean ply_clean zlib_clean
