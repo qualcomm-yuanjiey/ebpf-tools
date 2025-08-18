@@ -13,3 +13,6 @@
 [submodule "libbpf-tools/bpftool"]
 	path = libbpf-tools/bpftool
 	url = https://github.com/libbpf/bpftool.git
+[submodule "ply"]
+	path = ply
+	url = https://github.com/iovisor/ply.git
