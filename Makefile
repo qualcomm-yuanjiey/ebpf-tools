@@ -15,11 +15,6 @@ LIBELF_PATH=$(CURR_DIR)/libelf
 
 LIBZSTD=$(ZSTD_PATH)/lib/libzstd.a
 
-BUILD_ZSTD = $(MAKE) -C zstd
-ifeq ($(ARCH),arm64)
-BUILD_ZSTD += aarch64-linux-gnu-gcc
-endif
-
 $(LIBZSTD):
 	$(MAKE) -C zstd
 
