@@ -42,10 +42,10 @@ zlib_clean:
 	$(MAKE) -C zlib distclean
 
 libelf: $(LIBZSTD) zlib
-	$(MAKE) -C libelf LDFLAGS="-L$(ZSTD_PATH)/lib -L$(ZLIB_PATH)"
+	$(MAKE) -C libelf LDFLAGS="-L$(ZSTD_PATH)/lib -L$(ZLIB_PATH)" CFLAGS="-I$(ZSTD_PATH)/lib -I$(ZLIB_PATH)"
 
 libbpf-tools: $(LIBZSTD) zlib libelf
-	$(MAKE) -C libbpf-tools
+	$(MAKE) -C libbpf-tools EXTRA_CFLAGS="-I$(ZSTD_PATH)/lib -I$(ZLIB_PATH) -I$(LIBELF_PATH)/include"
 
 clean:
 	$(MAKE) -C ply clean
