@@ -8,6 +8,7 @@ CC ?= gcc
 ARCH ?= x86_64
 
 CURR_DIR := $(shell pwd)
+DESTDIR ?= $(shell pwd)/_install
 
 ZSTD_PATH=$(CURR_DIR)/zstd
 ZLIB_PATH=$(CURR_DIR)/zlib
@@ -46,6 +47,10 @@ libelf: $(LIBZSTD) zlib
 
 libbpf-tools: $(LIBZSTD) zlib libelf
 	$(MAKE) -C libbpf-tools EXTRA_CFLAGS="-I$(ZSTD_PATH)/lib -I$(ZLIB_PATH) -I$(LIBELF_PATH)/include"
+
+install:
+	$(MAKE) -C libbpf-tools DESTDIR=$(DESTDIR) install
+	$(MAKE) -C ply DESTDIR=$(DESTDIR) install
 
 clean:
 	$(MAKE) -C ply clean
