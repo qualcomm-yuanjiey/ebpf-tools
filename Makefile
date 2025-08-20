@@ -54,4 +54,4 @@ clean:
 	$(MAKE) -C libelf clean
 	$(MAKE) -C libbpf-tools clean
 
-distclean: clean ply_clean zlib_clean
+distclean: ply_clean zlib_clean
